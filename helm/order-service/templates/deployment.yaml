@@ -31,3 +31,5 @@ spec:
               value: "{{ .Values.env.DB_HOST }}"
             - name: ORDER_TOPIC_ID
               value: "{{ .Values.env.ORDER_TOPIC_ID }}"  
+            - name: REDIS_HOST
+              value: "{{ .Values.env.REDIS_HOST }}"  

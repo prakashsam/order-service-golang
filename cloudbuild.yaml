@@ -20,7 +20,8 @@ steps:
           --set env.DB_NAME=orderpaymentdb \
           --set env.DB_USER=postgres \
           --set env.DB_HOST=34.57.113.181 \
-          --set env.ORDER_TOPIC_ID=orderpayment
+          --set env.ORDER_TOPIC_ID=orderpayment \
+          --set env.REDIS_HOST=10.184.238.115:6379
 
 images:
   - 'us-central1-docker.pkg.dev/lyrical-mason-465314-f4/go-services/order-service:$COMMIT_SHA'

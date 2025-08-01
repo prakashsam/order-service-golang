@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"orderservice/config"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -16,8 +17,9 @@ type RedisClient struct {
 var redisClient *RedisClient
 
 func InitializeRedisClient() *RedisClient {
+	cfg := config.Load()
 	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     cfg.REDISHOST,
 		Password: "",
 		DB:       0,
 	})

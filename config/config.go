@@ -14,6 +14,7 @@ type Config struct {
 	DBUser                   string
 	DBHost                   string
 	ORDERTOPICID			 string
+	REDISHOST				 string
 }
 
 func Load() Config {
@@ -27,5 +28,6 @@ func Load() Config {
 		DBUser:                   os.Getenv("DB_USER"),
 		DBHost:                   os.Getenv("DB_HOST"),
 		ORDERTOPICID: 			  os.Getenv("ORDER_TOPIC_ID"),
+		REDISHOST: 				  os.Getenv("REDIS_HOST"),
 	}
 }
