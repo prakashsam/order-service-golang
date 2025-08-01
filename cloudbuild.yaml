@@ -19,7 +19,7 @@ steps:
           --set env.DB_PORT=5432 \
           --set env.DB_NAME=orderpaymentdb \
           --set env.DB_USER=postgres \
-          --set env.DB_HOST=34.57.113.181
+          --set env.DB_HOST=34.57.113.181 \
           --set env.ORDER_TOPIC_ID=orderpayment
 
 images:
