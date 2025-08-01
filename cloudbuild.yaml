@@ -1,17 +1,41 @@
 steps:
+  # Step 1: Build Docker image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/lyrical-mason-465314-f4/go-services/order-service:$COMMIT_SHA', '.']
+    args:
+      [
+        'build',
+        '-t',
+        'us-central1-docker.pkg.dev/lyrical-mason-465314-f4/go-services/order-service:$COMMIT_SHA',
+        '.'
+      ]
 
+  # Step 2: Push Docker image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/lyrical-mason-465314-f4/go-services/order-service:$COMMIT_SHA']
+    args:
+      [
+        'push',
+        'us-central1-docker.pkg.dev/lyrical-mason-465314-f4/go-services/order-service:$COMMIT_SHA'
+      ]
 
+  # Step 3: Setup Helm + Deploy Redis + Deploy Order Service
   - name: 'gcr.io/cloud-builders/kubectl'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
+        # Install Helm
         curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+        # Authenticate to your GKE cluster
         gcloud container clusters get-credentials order-service-cluster --region=us-central1
+
+        # Add Bitnami repo & install Redis in-cluster (no auth)
+        helm repo add bitnami https://charts.bitnami.com/bitnami
+        helm upgrade --install redis bitnami/redis \
+          --set auth.enabled=false \
+          --set architecture=standalone
+
+        # Deploy your order-service with env values
         helm upgrade --install order-service ./helm/order-service \
           --set image.repository=us-central1-docker.pkg.dev/lyrical-mason-465314-f4/go-services/order-service \
           --set image.tag=$COMMIT_SHA \
@@ -21,7 +45,7 @@ steps:
           --set env.DB_USER=postgres \
           --set env.DB_HOST=34.57.113.181 \
           --set env.ORDER_TOPIC_ID=orderpayment \
-          --set env.REDIS_HOST=10.184.238.115:6379
+          --set env.REDIS_HOST=redis-master.default.svc.cluster.local:6379
 
 images:
   - 'us-central1-docker.pkg.dev/lyrical-mason-465314-f4/go-services/order-service:$COMMIT_SHA'

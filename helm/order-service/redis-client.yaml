@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-client
+  labels:
+    app: redis-client
+spec:
+  containers:
+    - name: redis
+      image: redis:6.2-alpine
+      command: [ "sleep", "3600" ]
+      tty: true

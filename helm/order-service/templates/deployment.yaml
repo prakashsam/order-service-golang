@@ -32,4 +32,4 @@ spec:
             - name: ORDER_TOPIC_ID
               value: "{{ .Values.env.ORDER_TOPIC_ID }}"  
             - name: REDIS_HOST
-              value: "{{ .Values.env.REDIS_HOST }}"  
+              value: "{{ .Values.env.REDIS_HOST | quote }}"
