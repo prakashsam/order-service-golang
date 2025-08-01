@@ -2,42 +2,65 @@ package services
 
 import (
 	"context"
-	"orderservice/db"
+	"orderservice/caching"
 	"orderservice/models"
 	"orderservice/pubsub"
+
+	"gorm.io/gorm"
 )
 
-func CreateOrders(ctx context.Context, orders []models.Order) ([]models.Order, error) {
-	DB := db.GetDBConnection()
+type OrderService struct {
+	DB *gorm.DB
+}
+
+func (s *OrderService) CreateOrders(ctx context.Context, orders []models.Order) ([]models.Order, error) {
+	errChan := make(chan error, len(orders))
+
 	for i := range orders {
-		if err := DB.Create(&orders[i]).Error; err != nil {
+		if err := s.DB.Create(&orders[i]).Error; err != nil {
 			return nil, err
 		}
-		pubsub.PublishOrder(ctx, &orders[i])
+
+		go func(order models.Order) {
+			defer func() { errChan <- nil }()
+
+			pubsub.PublishOrder(ctx, &order)
+			caching.GetRedisClient().HSetData(ctx, order.ID, order)
+		}(orders[i])
 	}
+
+	for i := 0; i < len(orders); i++ {
+		<-errChan
+	}
+
 	return orders, nil
 }
 
-func GetOrder(orderID string) models.Order {
+func (s *OrderService) GetOrder(ctx context.Context, orderID string) (models.Order, error) {
 	var order models.Order
-	DB := db.GetDBConnection()
-	DB.Where("order_id = ?", orderID).First(&order)
-	return order
+
+	if err := caching.GetRedisClient().GetData(ctx, orderID, &order); err == nil {
+		return order, nil
+	}
+
+	if err := s.DB.Where("order_id = ?", orderID).First(&order).Error; err != nil {
+		return order, err
+	}
+
+	return order, nil
 }
 
-func UpdateOrderStatus(orderID string, status string) (models.Order, error) {
+func (s *OrderService) UpdateOrderStatus(ctx context.Context, orderID string, status string) (models.Order, error) {
 	var order models.Order
-	DB := db.GetDBConnection()
 
-	err := DB.First(&order, "order_id = ?", orderID).Error
-	if err != nil {
+	if err := s.DB.First(&order, "order_id = ?", orderID).Error; err != nil {
 		return order, err
 	}
 
 	order.Status = status
 
-	err = DB.Save(&order).Error
-	if err != nil {
+	if err := s.DB.Save(&order).Error; err != nil {
+		caching.GetRedisClient().HSetData(ctx, order.ID, order)
 		return order, err
 	}
 

@@ -1,16 +1,18 @@
-package routes
+package route
 
 import (
 	"orderservice/controllers"
+	"orderservice/db"
+	"orderservice/services"
 
 	"github.com/kataras/iris/v12"
 )
 
 func RegisterOrderRoutes(app *iris.Application) {
-	order := app.Party("/orders")
-	{
-		order.Post("/", controllers.CreateOrders)
-		order.Patch("/{order_id}/status", controllers.UpdateOrderStatus)
-		order.Get("/{order_id}", controllers.GetOrder)
-	}
+	orderService := &services.OrderService{DB: db.GetDBConnection()}
+	orderController := &controllers.OrderController{Service: orderService}
+
+	app.Post("/orders", orderController.CreateOrders)
+	app.Get("/orders/{order_id}", orderController.GetOrder)
+	app.Put("/orders/{order_id}/status", orderController.UpdateOrderStatus)
 }

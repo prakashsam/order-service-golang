@@ -1,14 +1,17 @@
 package controllers
 
 import (
-	"context"
 	"orderservice/models"
 	"orderservice/services"
 
 	"github.com/kataras/iris/v12"
 )
 
-func CreateOrders(ctx iris.Context) {
+type OrderController struct {
+	Service *services.OrderService
+}
+
+func (c *OrderController) CreateOrders(ctx iris.Context) {
 	var orders []models.Order
 	if err := ctx.ReadJSON(&orders); err != nil {
 		ctx.StatusCode(iris.StatusBadRequest)
@@ -16,7 +19,7 @@ func CreateOrders(ctx iris.Context) {
 		return
 	}
 
-	createdOrders, err := services.CreateOrders(context.Background(), orders)
+	createdOrders, err := c.Service.CreateOrders(ctx.Request().Context(), orders)
 	if err != nil {
 		ctx.StatusCode(iris.StatusInternalServerError)
 		ctx.JSON(iris.Map{"error": err.Error()})
@@ -26,9 +29,14 @@ func CreateOrders(ctx iris.Context) {
 	ctx.JSON(createdOrders)
 }
 
-func GetOrder(ctx iris.Context) {
+func (c *OrderController) GetOrder(ctx iris.Context) {
 	orderID := ctx.Params().Get("order_id")
-	order := services.GetOrder(orderID)
+	order, err := c.Service.GetOrder(ctx.Request().Context(), orderID)
+	if err != nil {
+		ctx.StatusCode(iris.StatusInternalServerError)
+		ctx.JSON(iris.Map{"error": err.Error()})
+		return
+	}
 	if order.ID == "" {
 		ctx.StatusCode(iris.StatusNotFound)
 		return
@@ -36,11 +44,16 @@ func GetOrder(ctx iris.Context) {
 	ctx.JSON(order)
 }
 
-func UpdateOrderStatus(ctx iris.Context) {
+func (c *OrderController) UpdateOrderStatus(ctx iris.Context) {
 	orderID := ctx.Params().Get("order_id")
 	var update models.Order
-	ctx.ReadJSON(&update)
-	order, err := services.UpdateOrderStatus(orderID, update.Status)
+	if err := ctx.ReadJSON(&update); err != nil {
+		ctx.StatusCode(iris.StatusBadRequest)
+		ctx.JSON(iris.Map{"error": "Invalid status update request"})
+		return
+	}
+
+	order, err := c.Service.UpdateOrderStatus(ctx.Request().Context(), orderID, update.Status)
 	if err != nil {
 		ctx.StatusCode(iris.StatusInternalServerError)
 		ctx.JSON(iris.Map{"error": err.Error()})

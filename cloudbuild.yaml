@@ -1,0 +1,29 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/lyrical-mason-465314-f4/go-services/order-service:$COMMIT_SHA', '.']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/lyrical-mason-465314-f4/go-services/order-service:$COMMIT_SHA']
+
+  - name: 'gcr.io/cloud-builders/kubectl'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+        gcloud container clusters get-credentials order-service-cluster --region=us-central1
+        helm upgrade --install order-service ./helm/order-service \
+          --set image.repository=us-central1-docker.pkg.dev/lyrical-mason-465314-f4/go-services/order-service \
+          --set image.tag=$COMMIT_SHA \
+          --set env.GCP_PROJECT_ID=lyrical-mason-465314-f4 \
+          --set env.DB_PORT=5432 \
+          --set env.DB_NAME=orderpaymentdb \
+          --set env.DB_USER=postgres \
+          --set env.DB_HOST=34.57.113.181
+          --set env.ORDER_TOPIC_ID=orderpayment
+
+images:
+  - 'us-central1-docker.pkg.dev/lyrical-mason-465314-f4/go-services/order-service:$COMMIT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

@@ -1,8 +1,9 @@
 package main
 
 import (
+	"orderservice/caching"
 	"orderservice/db"
-	"orderservice/middleware"
+
 	"orderservice/pubsub"
 	router "orderservice/routes"
 
@@ -16,9 +17,9 @@ func main() {
 
 	db.InitDBConnection()
 	pubsub.InitPublisher()
-	app.UseRouter(middleware.AuthMiddleware())
+	caching.InitializeRedisClient()
 
 	router.RegisterOrderRoutes(app)
 	app.Configure(iris.WithLogLevel("debug"))
-	app.Listen(":8081")
+	app.Listen(":8082")
 }

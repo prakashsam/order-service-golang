@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"os"
 	"orderservice/models"
+	"orderservice/config"
 
 	"cloud.google.com/go/pubsub"
 )
@@ -13,13 +13,12 @@ import (
 var topic *pubsub.Topic
 
 func InitPublisher() {
-	projectID := os.Getenv("GCP_PROJECT")
-	topicID := os.Getenv("ORDER_TOPIC_ID")
-	client, err := pubsub.NewClient(context.Background(), projectID)
+	cfg := config.Load()
+	client, err := pubsub.NewClient(context.Background(), cfg.ProjectID)
 	if err != nil {
 		log.Fatal("PubSub init error:", err)
 	}
-	topic = client.Topic(topicID)
+	topic = client.Topic(cfg.ORDERTOPICID)
 }
 
 func PublishOrder(ctx context.Context, order *models.Order) {
