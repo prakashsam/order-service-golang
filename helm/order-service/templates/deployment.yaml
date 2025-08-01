@@ -20,16 +20,16 @@ spec:
             - containerPort: 8082
           env:
             - name: GCP_PROJECT_ID
-              value: "{{ .Values.env.GCP_PROJECT_ID }}"
+              value: {{ .Values.env.GCP_PROJECT_ID | quote }}
             - name: DB_PORT
-              value: "{{ .Values.env.DB_PORT }}"
+              value: {{ .Values.env.DB_PORT | quote }}
             - name: DB_NAME
-              value: "{{ .Values.env.DB_NAME }}"
+              value: {{ .Values.env.DB_NAME | quote }}
             - name: DB_USER
-              value: "{{ .Values.env.DB_USER }}"
+              value: {{ .Values.env.DB_USER | quote }}
             - name: DB_HOST
-              value: "{{ .Values.env.DB_HOST }}"
+              value: {{ .Values.env.DB_HOST | quote }}
             - name: ORDER_TOPIC_ID
-              value: "{{ .Values.env.ORDER_TOPIC_ID }}"  
+              value: {{ .Values.env.ORDER_TOPIC_ID | quote }}
             - name: REDIS_HOST
-              value: "{{ .Values.env.REDIS_HOST | quote }}"
+              value: {{ .Values.env.REDIS_HOST | quote }}
