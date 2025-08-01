@@ -30,6 +30,7 @@ func InitializeRedisClient() *RedisClient {
 	}
 
 	redisClient = &RedisClient{client: client}
+	log.Fatalf("Redis client initialized successfully")
 	return redisClient
 }
 
