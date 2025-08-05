@@ -16,4 +16,4 @@ env:
   DB_USER: postgres
   DB_HOST: 34.57.113.181
   ORDER_TOPIC_ID: orderpayment
-  REDIS_HOST: 10.184.238.115:6379
+  REDIS_HOST: redis-master.default.svc.cluster.local:6379
